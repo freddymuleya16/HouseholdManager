@@ -1,6 +1,5 @@
 // DependencyContext.tsx
-import { ApiService } from "@/services/ApiService"; 
-import authService, { AuthService } from "@/services/AuthService";
+import { ApiService } from "@/services/ApiService";  
 import { createContext, useMemo, ReactNode } from "react";  
 
 // Define the shape of the context value

@@ -1,4 +1,3 @@
-import About from "../src/screens/About";
+import About from "@/screens/About";
 
- 
 export default About;
