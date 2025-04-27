@@ -1,23 +1,22 @@
-// DependencyContext.tsx
-import { ApiService } from "@/services/ApiService";  
-import { createContext, useMemo, ReactNode } from "react";  
+import { ApiService } from "@/services/ApiService";
+import { TaskService } from "@/services/TaskService";
+import { createContext, useMemo, ReactNode } from "react";
 
-// Define the shape of the context value
-interface DependencyContextType {
-  apiService: ApiService; 
+ interface DependencyContextType {
+  apiService: ApiService;
+  taskService: TaskService;
 }
-
-// Create the context with a default undefined value
+ 
 export const DependencyContext = createContext<DependencyContextType | undefined>(undefined);
-
-// Provider component to inject services
+ 
 interface DependencyProviderProps {
   children: ReactNode;
 }
 
 export const DependencyProvider: React.FC<DependencyProviderProps> = ({ children }) => {
   const services = useMemo(() => ({
-    apiService: new ApiService()
+    apiService: new ApiService(),
+    taskService: new TaskService()
   }), []);
 
   return (

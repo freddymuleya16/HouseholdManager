@@ -20,6 +20,7 @@ import { v4 as uuidv4 } from 'uuid';
 import JWT, { SupportedAlgorithms } from 'expo-jwt';
 //import { createHash, randomBytes } from 'crypto';
 import * as Crypto from 'expo-crypto';
+import { UserWithPassword as User } from '@/entities/User';
 
 interface LoginCredentials {
   email: string;
@@ -31,7 +32,7 @@ interface RegisterCredentials extends LoginCredentials {
 }
 
 interface TokenPayload {
-  userId: string;
+  id: string;
   email: string;
   roles: string[];
   exp: number;
@@ -42,25 +43,18 @@ interface AuthTokens {
   refreshToken: string;
 }
 
-interface User {
-  id: string;
-  email: string;
-  passwordHash: string;
-  roles: string[];
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-}
+
 
 interface RefreshToken {
   token: string;
-  userId: string;
+  id: string;
   expiresAt: Timestamp;
   createdAt: Timestamp;
 }
 
 interface PasswordResetToken {
   token: string;
-  userId: string;
+  id: string;
   expiresAt: Timestamp;
   createdAt: Timestamp;
 }
@@ -135,25 +129,25 @@ class AuthService {
       const passwordHash = credentials.password;
 
       // Create user in Firestore
-      const userId = uuidv4();
+      const id = uuidv4();
       const now = Timestamp.now();
 
       const user: User = {
-        id: userId,
+        id: id,
         email: credentials.email,
         passwordHash,
         roles: ['user'],
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
       };
 
-      await setDoc(doc(this.db, 'users', userId), user);
+      await setDoc(doc(this.db, 'users', id), user);
 
       // Generate tokens
       const tokens = this.generateTokens(user);
 
       // Store refresh token in Firestore
-      await this.storeRefreshToken(userId, tokens.refreshToken);
+      await this.storeRefreshToken(id, tokens.refreshToken);
 
       // Store tokens locally
       await this.storeTokensLocally(tokens);
@@ -215,7 +209,7 @@ class AuthService {
 
       const resetTokenData: PasswordResetToken = {
         token: resetTokenHash,
-        userId: user.id,
+        id: user.id,
         expiresAt,
         createdAt: now
       };
@@ -263,7 +257,7 @@ class AuthService {
       const passwordHash = await BcryptReactNative.hash(newPassword, salt);
 
       // Update user's password
-      const userRef = doc(this.db, 'users', resetToken.userId);
+      const userRef = doc(this.db, 'users', resetToken.id);
       await updateDoc(userRef, {
         passwordHash,
         updatedAt: now
@@ -307,7 +301,7 @@ class AuthService {
       }
 
       // Get user
-      const userRef = doc(this.db, 'users', storedToken.userId);
+      const userRef = doc(this.db, 'users', storedToken.id);
       const userDoc = await getDoc(userRef);
 
       if (!userDoc.exists()) {
@@ -336,13 +330,13 @@ class AuthService {
   }
 
   // Helper Methods
-  private async storeRefreshToken(userId: string, token: string): Promise<void> {
+  private async storeRefreshToken(id: string, token: string): Promise<void> {
     const now = Timestamp.now();
     const expiresAt = Timestamp.fromDate(new Date(Date.now() + this.refreshTokenExpiry * 1000));
 
     const refreshTokenData: RefreshToken = {
       token,
-      userId,
+      id,
       expiresAt,
       createdAt: now
     };
@@ -357,7 +351,7 @@ class AuthService {
   private generateTokens(user: User): AuthTokens {
     const accessToken = JWT.encode(
       {
-        userId: user.id,
+        id: user.id,
         email: user.email,
         roles: user.roles
       },
@@ -469,7 +463,7 @@ class AuthService {
       }
 
       const decoded = await this.decodeToken();
-      const userRef = doc(this.db, 'users', decoded.userId);
+      const userRef = doc(this.db, 'users', decoded.id);
       const userDoc = await getDoc(userRef);
 
       if (!userDoc.exists()) {

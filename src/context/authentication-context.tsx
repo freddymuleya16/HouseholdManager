@@ -1,13 +1,9 @@
 
+import { User } from '@/entities/User';
 import authService from '@/services/AuthService';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Alert } from 'react-native';
-
-interface User {
-  id: string;
-  email: string;
-  roles: string[];
-}
+ 
 
 interface LoginCredentials {
   email: string;
@@ -63,7 +59,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser({
               id: userData.id,
               email: userData.email,
-              roles: userData.roles
+              roles: userData.roles,
+              householdId:userData.householdId,
+              name:userData.name
             });
           }
         }
